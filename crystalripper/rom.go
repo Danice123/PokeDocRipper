@@ -99,17 +99,19 @@ func (ths *CrystalRipper) readMoveList(rom []byte) {
 	c := RomCursor{Rom: rom, Cursor: searchBytesWithWildcards(rom, search)}
 
 	for i := 1; ; i++ {
-		move := PokemonMove{}
+		move := PokemonMove{Extra: []string{}}
 		move.Index = c.ReadInt()
 		if move.Index != i {
 			break
 		}
-		_ = c.ReadInt() // Effect
+
+		effect := c.ReadInt()
 		move.Power = c.ReadInt()
 		move.Type = ToType(c.ReadByte())
 		move.Accuracy = int(math.Round(float64(c.ReadByte()) / float64(0xFF) * 100.0))
 		move.PP = c.ReadInt()
-		_ = int(math.Round(float64(c.ReadByte()) / float64(0xFF) * 100.0)) // Effect chance
+		effectChance := int(math.Round(float64(c.ReadByte()) / float64(0xFF) * 100.0))
+		move.Extra = GetEffect(move.Index, effect, effectChance, move.Power)
 
 		ths.Moves = append(ths.Moves, move)
 	}
